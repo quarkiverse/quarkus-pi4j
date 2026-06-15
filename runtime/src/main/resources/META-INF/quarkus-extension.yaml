@@ -7,3 +7,4 @@ metadata:
 #  categories:
 #    - "miscellaneous"
 #  status: "preview"
+deployment-artifact: "io.quarkiverse.pi4j:quarkus-pi4j-deployment:${project.version}"
