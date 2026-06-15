@@ -1,27 +1,159 @@
-= Quarkus Pi4j
-
+= Quarkus Pi4J
 include::./includes/attributes.adoc[]
+:examplesdir: {docdir}/../examples
 
-TIP: Describe what the extension does here.
+Quarkus extension for integrating https://pi4j.com/[Pi4J v4] with Quarkus applications running on Raspberry Pi hardware.
+Provides CDI-managed GPIO access, named-pin injection, a readiness health check, and mock support for dev/test environments.
 
 == Installation
 
-If you want to use this extension, you need to add the `io.quarkiverse.pi4j:quarkus-pi4j` extension first to your build file.
+Add the extension to your `pom.xml`:
 
-For instance, with Maven, add the following dependency to your POM file:
-
-[source,xml,subs=attributes+]
+[source,xml]
 ----
 <dependency>
-    <groupId>io.quarkiverse.pi4j</groupId>
-    <artifactId>quarkus-pi4j</artifactId>
-    <version>{project-version}</version>
+  <groupId>io.quarkiverse.pi4j</groupId>
+  <artifactId>quarkus-pi4j</artifactId>
+  <version>${quarkus-pi4j.version}</version>
 </dependency>
 ----
 
-[[extension-configuration-reference]]
-== Extension Configuration Reference
+== Configuration
 
-TIP: Remove this section if you don't have Quarkus configuration properties in your extension.
+All properties are prefixed with `quarkus.pi4j`.
 
-include::includes/quarkus-pi4j.adoc[leveloffset=+1, opts=optional]
+[cols="2,1,3"]
+|===
+|Property |Default |Description
+
+|`quarkus.pi4j.enabled`
+|`true`
+|Enable or disable the extension entirely.
+
+|`quarkus.pi4j.mock`
+|`false`
+|Use Pi4J mock providers instead of real hardware. Recommended in dev, test, and CI.
+
+|`quarkus.pi4j.shutdown`
+|`true`
+|Automatically shut down the Pi4J Context when Quarkus stops.
+
+|`quarkus.pi4j.fail-on-startup-error`
+|`true`
+|Fail application startup if the Pi4J Context cannot be initialized.
+
+|`quarkus.pi4j.pins.<name>`
+|—
+|Map a logical name to a GPIO address. Example: `quarkus.pi4j.pins.led=13`.
+
+|`quarkus.pi4j.digital-input-provider`
+|—
+|Optional provider ID for digital inputs. Omit to let Pi4J choose.
+
+|`quarkus.pi4j.digital-output-provider`
+|—
+|Optional provider ID for digital outputs. Omit to let Pi4J choose.
+|===
+
+Full reference configuration with all properties and profile overrides:
+
+[source,properties]
+----
+include::{examplesdir}/application.properties[]
+----
+
+== Usage
+
+The example below shows all three injection styles together in a single bean:
+
+[source,java]
+----
+include::{examplesdir}/Pi4jApplication.java[]
+----
+
+=== Injecting the Pi4J Context
+
+[source,java]
+----
+@Inject
+Context pi4j;
+----
+
+=== GPIO by pin address
+
+Use `@GpioPin` to inject a `DigitalOutput` or `DigitalInput` directly by BCM address:
+
+[source,java]
+----
+@Inject @GpioPin(13)
+DigitalOutput led;
+
+@Inject @GpioPin(value = 5, id = "button", name = "Push Button")
+DigitalInput button;
+----
+
+=== GPIO by configured name
+
+Use `@NamedGpio` to inject a pin by its logical name defined in `application.properties`:
+
+[source,java]
+----
+// requires quarkus.pi4j.pins.led=13
+@Inject @NamedGpio("led")
+DigitalOutput led;
+
+// requires quarkus.pi4j.pins.button=5
+@Inject @NamedGpio("button")
+DigitalInput button;
+----
+
+=== Imperative GPIO via GpioService
+
+`GpioService` provides an imperative API for creating pins at runtime:
+
+[source,java]
+----
+@Inject
+GpioService gpio;
+
+DigitalOutput out    = gpio.output(13);
+DigitalInput  in     = gpio.input(5);
+DigitalOutput led    = gpio.namedOutput("led");
+DigitalInput  button = gpio.namedInput("button");
+----
+
+Pins are cached by ID — calling `output(13)` twice returns the same instance.
+
+== Health Check
+
+When `quarkus-smallrye-health` is on the classpath, the extension registers a `@Readiness` health check named `pi4j`.
+
+[source,json]
+----
+{
+  "name": "pi4j",
+  "status": "UP",
+  "data": {
+    "enabled": true,
+    "mock": false
+  }
+}
+----
+
+If the Context fails to start, the check reports `DOWN` with the error class and message.
+
+== Testing
+
+Enable mock providers in the test profile so tests run without Raspberry Pi hardware:
+
+[source,properties]
+----
+%test.quarkus.pi4j.mock=true
+----
+
+Full `@QuarkusTest` example covering context availability, pin toggling, and named GPIO resolution:
+
+[source,java]
+----
+include::{examplesdir}/Pi4jQuarkusTest.java[]
+----

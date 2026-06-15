@@ -1,1 +1,1 @@
-* xref:index.adoc[Getting started]
+* xref:index.adoc[Quarkus Pi4J]

@@ -16,17 +16,43 @@
 */
 package io.quarkiverse.pi4j.it;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 
+import com.pi4j.context.Context;
+import com.pi4j.io.gpio.digital.DigitalOutput;
+
+import io.quarkiverse.pi4j.gpio.GpioService;
+import io.quarkiverse.pi4j.gpio.NamedGpio;
+
 @Path("/pi4j")
-@ApplicationScoped
 public class Pi4jResource {
-    // add some rest methods here
+    @Inject
+    Context context;
+    @Inject
+    GpioService gpio;
+    @Inject
+    @NamedGpio("led")
+    DigitalOutput led;
 
     @GET
-    public String hello() {
-        return "Hello pi4j";
+    public String status() {
+        return context != null ? "ok" : "missing";
+    }
+
+    @POST
+    @Path("/led/on")
+    public String ledOn() {
+        led.high();
+        return "on";
+    }
+
+    @POST
+    @Path("/pin/13/off")
+    public String pinOff() {
+        gpio.output(13).low();
+        return "off";
     }
 }

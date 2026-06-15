@@ -20,6 +20,10 @@
             <artifactId>quarkus-pi4j-deployment</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

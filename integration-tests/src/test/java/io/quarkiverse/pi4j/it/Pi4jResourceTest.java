@@ -16,6 +16,6 @@ public class Pi4jResourceTest {
                 .when().get("/pi4j")
                 .then()
                 .statusCode(200)
-                .body(is("Hello pi4j"));
+                .body(is("ok"));
     }
 }
