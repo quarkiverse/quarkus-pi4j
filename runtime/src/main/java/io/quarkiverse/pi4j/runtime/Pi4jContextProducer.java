@@ -6,6 +6,9 @@ import jakarta.enterprise.inject.Produces;
 
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
+import com.pi4j.plugin.mock.platform.MockPlatform;
+import com.pi4j.plugin.mock.provider.gpio.digital.MockDigitalInputProvider;
+import com.pi4j.plugin.mock.provider.gpio.digital.MockDigitalOutputProvider;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -21,7 +24,10 @@ public class Pi4jContextProducer {
         }
         try {
             this.context = config.mock()
-                    ? Pi4J.newContextBuilder().autoDetectMockPlugins().autoDetectPlatforms().build()
+                    ? Pi4J.newContextBuilder()
+                            .add(new MockPlatform())
+                            .add(MockDigitalInputProvider.newInstance(), MockDigitalOutputProvider.newInstance())
+                            .build()
                     : Pi4J.newAutoContext();
         } catch (Throwable t) {
             this.startupFailure = t;

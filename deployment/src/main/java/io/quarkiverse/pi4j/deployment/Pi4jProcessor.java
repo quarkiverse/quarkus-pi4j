@@ -47,7 +47,7 @@ public class Pi4jProcessor {
     @BuildStep
     ReflectiveClassBuildItem reflection() {
         return ReflectiveClassBuildItem.builder(
-                "com.pi4j.plugin.mock.MockPlatform",
+                "com.pi4j.plugin.mock.platform.MockPlatform",
                 "com.pi4j.plugin.mock.provider.gpio.digital.MockDigitalInputProvider",
                 "com.pi4j.plugin.mock.provider.gpio.digital.MockDigitalOutputProvider")
                 .methods().constructors().build();
