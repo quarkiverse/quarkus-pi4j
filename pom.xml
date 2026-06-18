@@ -25,7 +25,7 @@
     </scm>
 
     <properties>
-        <quarkus.version>3.36.2</quarkus.version>
+        <quarkus.version>3.37.0</quarkus.version>
         <pi4j.version>4.0.2</pi4j.version>
         <maven.compiler.release>25</maven.compiler.release>
     </properties>
